@@ -1,0 +1,32 @@
+---
+- name: Create Cloud Infrastructure
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Provision EC2 instance
+      amazon.aws.ec2_instance:
+        name: shaked_instance
+        state: present
+        region: "us-east-1"
+        instance_type: t2.micro
+        image_id: "992382545251"
+        key_name: "shaked31.pem"
+        security_groups: default
+        tags:
+          Name: shaked_instance
+      register: ec2_result
+
+    - name: Create S3 Bucket
+      amazon.aws.s3_bucket:
+        name: " s3_bucket_name "
+        state: present
+        region: "us-east-1 "
+      when: ec2_result.instances is defined
+
+    - name: Create Security Group
+      amazon.aws.ec2_group:
+        name: default
+        state: present
+        region: "us-east-1"
+        description: My security group
+      when: ec2_result.instances is defined

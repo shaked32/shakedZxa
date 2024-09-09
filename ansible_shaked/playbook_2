@@ -1,0 +1,67 @@
+---
+- name: Setup web server
+  hosts: app
+  user: centos
+  become: True
+  gather_facts: True
+  vars_files:
+    - group_vars/env
+    - group_vars/colman.env
+    - group_vars/docker.env
+  tasks:
+    - name: install epel-release package
+      yum:
+        name: epel-release
+        state: present
+
+    - name: install required packages
+      yum:
+        name:
+          - git
+          - python3-pip
+          - yum-utils
+        state: present
+
+    - name: Add Docker CE repository
+      shell: "yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo"
+
+    - name: Install Docker CE and related packages
+      ansible.builtin.yum:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-compose
+        state: present
+
+    - name: Start Docker service
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Copy SSH key
+      ansible.builtin.copy:
+        src: /path/to/ssh_key
+        dest: /home/centos/.ssh/authorized_keys
+        owner: centos
+        mode: '0600'
+
+    - name: Clone application repository
+      git:
+        repo: 'https://github.com/shaked32/shaked-repo.git'
+        dest: /path/to/app
+
+    - name: Build Docker image and push to DockerHub
+      docker_image:
+        name: my-app
+        path: /path/to/app
+        state: present
+        push: yes
+
+    - name: Start Docker container
+      docker_container:
+        name: my-app-container
+        image: my-app
+        state: started
+
