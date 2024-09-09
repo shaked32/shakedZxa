@@ -1,0 +1,65 @@
+---
+- name: Create Cloud Infra
+  hosts: localhost
+  tasks:
+
+- name: Setup web server
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install epel-release package
+      ansible.builtin.yum:
+        name: epel-release
+        state: present
+
+    - name: Install git, python-pip, yum-utils
+      ansible.builtin.yum:
+        name:
+          - git
+          - python-pip
+          - yum-utils
+        state: present
+
+    - name: Add Docker CE repo
+      ansible.builtin.shell: "yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo"
+      args:
+        creates: /etc/yum.repos.d/docker-ce.repo
+
+    - name: Install Docker and Docker Compose
+      ansible.builtin.yum:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-compose
+        state: present
+
+    - name: Start Docker service
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Copy SSH key
+      ansible.builtin.copy:
+        src: /path/to/local/ssh-key
+        dest: /home/{{ ansible_user }}/.ssh/id_rsa
+        mode: '0600'
+
+    - name: Clone app repository
+      ansible.builtin.git:
+        repo: 'https://github.com/your-repo/app.git'
+        dest: /path/to/destination
+
+    - name: Build Docker image
+      ansible.builtin.shell: "docker build -t your-dockerhub-username/app-image ."
+      args:
+        chdir: /path/to/destination
+
+    - name: Push Docker image to DockerHub
+      ansible.builtin.shell: "docker push your-dockerhub-username/app-image"
+      args:
+        chdir: /path/to/destination
+
+    - name: Start Docker app
+      ansible.builtin.shell: "docker run -d -p 80:80 your-dockerhub-username/app-image"
