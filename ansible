@@ -5,7 +5,7 @@
 
 - name: Setup web server
   hosts: all
-  become: yes
+  become: true
   tasks:
     - name: Install epel-release package
       ansible.builtin.yum:
@@ -42,24 +42,24 @@
 
     - name: Copy SSH key
       ansible.builtin.copy:
-        src: /path/to/local/ssh-key
+        src: "C:\Users\jbt\Downloads\shaked31.pem"
         dest: /home/{{ ansible_user }}/.ssh/id_rsa
         mode: '0600'
 
     - name: Clone app repository
       ansible.builtin.git:
-        repo: 'https://github.com/your-repo/app.git'
+        repo: 'https://github.com/shaked-repo/app.git'
         dest: /path/to/destination
 
     - name: Build Docker image
-      ansible.builtin.shell: "docker build -t your-dockerhub-username/app-image ."
+      ansible.builtin.shell: "docker build -t shaked32/app-image ."
       args:
         chdir: /path/to/destination
 
     - name: Push Docker image to DockerHub
-      ansible.builtin.shell: "docker push your-dockerhub-username/app-image"
+      ansible.builtin.shell: "docker push shaked32/app-image"
       args:
         chdir: /path/to/destination
 
     - name: Start Docker app
-      ansible.builtin.shell: "docker run -d -p 80:80 your-dockerhub-username/app-image"
+      ansible.builtin.shell: "docker run -d -p 80:80 shaked32/app-image"
